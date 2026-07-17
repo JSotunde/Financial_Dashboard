@@ -5,12 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, render_template, request
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from extensions import db, login_manager
 from auth import auth_bp
 from models import User, Stock, DiscussionPost, POST_BODY_LIMIT
-from stock_service import get_or_refresh_stock
+from stock_service import (
+    get_or_refresh_historical_data,
+    get_or_refresh_news,
+    get_or_refresh_stock,
+)
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
@@ -26,7 +30,7 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 @app.route('/')
@@ -41,6 +45,7 @@ def dashboard():
 
 
 @app.post("/stock/<ticker>/discussion")
+@login_required
 def create_post(ticker):
     stock = db.session.get(Stock, ticker.upper())
 
@@ -52,14 +57,8 @@ def create_post(ticker):
     if not data:
         return {"error": "JSON body required"}, 400
 
-    user_id = data.get("user_id")
     body = data.get("body", "").strip()
     stance = data.get("stance", "neutral")
-
-    user = db.session.get(User, user_id)
-
-    if user is None:
-        return {"error": "User not found"}, 404
 
     if not body:
         return {"error": "Post body cannot be empty"}, 400
@@ -71,7 +70,7 @@ def create_post(ticker):
         return {"error": "Invalid stance"}, 400
 
     post = DiscussionPost(
-        author=user,
+        author=current_user,
         stock=stock,
         body=body,
         stance=stance,
@@ -98,6 +97,8 @@ def stock_details(ticker):
 
     try:
         stock = get_or_refresh_stock(stock)
+        historical_prices = get_or_refresh_historical_data(stock)
+        news_articles = get_or_refresh_news(stock)
     except Exception:
         return {"error": "Unable to retrieve stock data"}, 503
 
@@ -118,6 +119,26 @@ def stock_details(ticker):
         "debt": stock.debt,
         "analyst_recommendation": stock.analyst_recommendation,
         "price_target": stock.price_target,
+        "historical_prices": [
+            {
+                "date": price.date.isoformat(),
+                "close": price.close,
+            }
+            for price in historical_prices
+        ],
+        "news": [
+            {
+                "title": article.title,
+                "source": article.source,
+                "url": article.url,
+                "published_at": (
+                    article.published_at.isoformat()
+                    if article.published_at
+                    else None
+                ),
+            }
+            for article in news_articles
+        ],
     }
 
 

@@ -18,20 +18,22 @@ class User(UserMixin, db.Model):
 
 class Stock(db.Model):
     ticker = db.Column(db.String(10), primary_key=True)
-    last_updated = db.Column(db.DateTime, nullable=False)
-    current_price = db.Column(db.Float, nullable=False)
-    market_cap = db.Column(db.Float, nullable=False)
-    pe_ratio = db.Column(db.Float, nullable=False)
-    revenue = db.Column(db.Float, nullable=False)
-    revenue_growth = db.Column(db.Float, nullable=False)
-    profit_margins = db.Column(db.Float, nullable=False)
-    free_cashflow = db.Column(db.Float, nullable=False)
-    debt = db.Column(db.Float, nullable=False)
-    analyst_recommendation = db.Column(db.String(50), nullable=False)
-    price_target = db.Column(db.Float, nullable=False)
+    last_updated = db.Column(db.DateTime)
+    news_last_updated = db.Column(db.DateTime)
+    current_price = db.Column(db.Float)
+    market_cap = db.Column(db.Float)
+    pe_ratio = db.Column(db.Float)
+    revenue = db.Column(db.Float)
+    revenue_growth = db.Column(db.Float)
+    profit_margins = db.Column(db.Float)
+    free_cashflow = db.Column(db.Float)
+    debt = db.Column(db.Float)
+    analyst_recommendation = db.Column(db.String(50))
+    price_target = db.Column(db.Float)
     discussion_posts = db.relationship('DiscussionPost', back_populates='stock', lazy=True, cascade="all, delete-orphan")
     watchlist_items = db.relationship('WatchlistItem', back_populates='stock', lazy=True, cascade="all, delete-orphan")
     historical_prices = db.relationship('HistoricalPrice', back_populates='stock', lazy=True, cascade="all, delete-orphan")
+    news_articles = db.relationship('NewsArticle', back_populates='stock', lazy=True, cascade="all, delete-orphan")
 
 
 class DiscussionPost(db.Model):
@@ -90,3 +92,5 @@ class NewsArticle(db.Model):
     source = db.Column(db.String(100))
     url = db.Column(db.String(500), nullable=False, unique=True)
     published_at = db.Column(db.DateTime)
+
+    stock = db.relationship("Stock", back_populates="news_articles")

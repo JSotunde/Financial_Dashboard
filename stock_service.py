@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 from extensions import db
-from financial_data import get_stock_data
+from financial_data import get_news, get_stock_data
+from models import NewsArticle
 
 PRICE_CACHE_DURATION = timedelta(hours=1)
 HISTORY_CACHE_DURATION = timedelta(hours=24)
@@ -39,3 +40,52 @@ def get_or_refresh_stock(stock):
             return stock
 
         raise
+
+def get_or_refresh_news(stock):
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    if (
+        stock.news_last_updated is not None
+        and stock.news_last_updated + NEWS_CACHE_DURATION > now
+    ):
+        return stock.news_articles
+
+    cached_articles = list(stock.news_articles)
+
+    try:
+        news_data = get_news(stock.ticker)
+        NewsArticle.query.filter_by(stock_ticker=stock.ticker).delete()
+        new_articles = []
+
+        for article_data in news_data:
+            published_at = article_data.get("publishedAt")
+            if published_at:
+                published_at = datetime.fromisoformat(
+                    published_at.replace("Z", "+00:00")
+                ).replace(tzinfo=None)
+
+            article = NewsArticle(
+                stock_ticker=stock.ticker,
+                title=article_data["title"],
+                source=article_data.get("source"),
+                url=article_data["url"],
+                published_at=published_at,
+            )
+            db.session.add(article)
+            new_articles.append(article)
+
+        stock.news_last_updated = now
+        db.session.commit()
+        return new_articles
+
+    except Exception:
+        db.session.rollback()
+
+        if cached_articles:
+            return cached_articles
+
+        raise
+
+def get_or_refresh_historical_data(stock):
+    # refresh and save historical prices once Sugra is in place
+    return stock.historical_prices
