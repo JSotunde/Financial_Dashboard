@@ -1,15 +1,3 @@
-### Create user
-
-POST http://127.0.0.1:5000/users
-Content-Type: application/json
-
-{
-  "username": "cristopher",
-  "email": "cristopher@example.com",
-  "password": "testpassword"
-}
-
-
 ### Create discussion post
 
 POST http://127.0.0.1:5000/stock/AAPL/discussion

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, render_template, request
-from flask_login import current_user, login_required
+from flask_login import login_required, current_user
 
 from extensions import db, login_manager
 from auth import auth_bp
@@ -30,7 +30,7 @@ app.register_blueprint(auth_bp, url_prefix='/auth')
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    return User.query.get(int(user_id))
 
 
 @app.route('/')
