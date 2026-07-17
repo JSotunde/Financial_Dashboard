@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from flask_login import login_required
 load_dotenv()
 import os
 from models import User
@@ -11,6 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
 db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 @login_manager.user_loader
@@ -21,5 +23,10 @@ with app.app_context():
 @app.route('/')
 def index():
     return render_template('index.html')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
 if __name__ == '__main__':
     app.run(debug=True)
+
+##Jacob : im gonna addd logout, and start working on backend (dashboard etc.)
