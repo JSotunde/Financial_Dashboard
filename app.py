@@ -2,115 +2,41 @@ import os
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from werkzeug.security import check_password_hash, generate_password_hash
-
 load_dotenv()
 
+from flask import Flask, render_template, request
+from flask_login import login_required
+
+from extensions import db, login_manager
+from auth import auth_bp
+from models import User, Stock, DiscussionPost, POST_BODY_LIMIT
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-POST_BODY_LIMIT = 500  # characters
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+db.init_app(app)
 
-
-class User(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(80), unique=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True)
-    password: Mapped[str] = mapped_column(String(255))
-
-    discussion_posts: Mapped[list["DiscussionPost"]] = relationship(
-        back_populates="author", cascade="all, delete-orphan"
-    )
-
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
-    def __repr__(self):
-        return f"<User {self.username}>"
+app.register_blueprint(auth_bp, url_prefix='/auth')
 
 
-class Stock(db.Model):
-    ticker: Mapped[str] = mapped_column(String(10), primary_key=True)
-    last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    current_price: Mapped[float] = mapped_column(Float)
-    market_cap: Mapped[float] = mapped_column(Float)
-
-    pe_ratio: Mapped[float | None] = mapped_column(Float)
-    revenue: Mapped[float | None] = mapped_column(Float)
-    revenue_growth: Mapped[float | None] = mapped_column(Float)
-    profit_margins: Mapped[float | None] = mapped_column(Float)
-    free_cashflow: Mapped[float | None] = mapped_column(Float)
-    debt: Mapped[float | None] = mapped_column(Float)
-    analyst_recommendation: Mapped[str | None] = mapped_column(String(50))
-    price_target: Mapped[float | None] = mapped_column(Float)
-
-    discussion_posts: Mapped[list["DiscussionPost"]] = relationship(
-        back_populates="stock"
-    )
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
-class DiscussionPost(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    ticker: Mapped[str] = mapped_column(String(10), ForeignKey("stock.ticker"))
-    body: Mapped[str] = mapped_column(String(POST_BODY_LIMIT))
-    stance: Mapped[str] = mapped_column(String(7), default="neutral")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
-    )
-
-    author: Mapped["User"] = relationship(back_populates="discussion_posts")
-    stock: Mapped["Stock"] = relationship(back_populates="discussion_posts")
-
-    __table_args__ = (CheckConstraint("stance IN ('bullish', 'neutral', 'bearish')"),)
+@app.route('/')
+def index():
+    return render_template('login.html')
 
 
-@app.post("/users")  # placeholder feel free to add more complex authentication
-def create_user():
-    data = request.get_json()
-
-    if not data:
-        return {"error": "JSON body required"}, 400
-
-    username = data.get("username", "").strip()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
-
-    if not username or not email or not password:
-        return {"error": "username, email, and password are required"}, 400
-
-    existing_user = db.session.scalar(
-        db.select(User).where((User.username == username) | (User.email == email))
-    )
-
-    if existing_user:
-        return {"error": "Username or email already exists"}, 409
-
-    user = User(
-        username=username,
-        email=email,
-        password="",
-    )
-    user.set_password(password)
-
-    db.session.add(user)
-    db.session.commit()
-
-    return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-    }, 201
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
 
 
 @app.post("/stock/<ticker>/discussion")
@@ -155,10 +81,10 @@ def create_post(ticker):
 
     return {
         "id": post.id,
-        "ticker": post.ticker,
+        "ticker": post.stock_ticker,
         "body": post.body,
         "stance": post.stance,
-        "author": post.author.username,
+        "author": post.author.email,
         "created_at": post.created_at.isoformat(),
     }, 201
 
@@ -172,7 +98,7 @@ def get_posts(ticker):
 
     posts = db.session.scalars(
         db.select(DiscussionPost)
-        .where(DiscussionPost.ticker == stock.ticker)
+        .where(DiscussionPost.stock_ticker == stock.ticker)
         .order_by(DiscussionPost.created_at.desc())
     ).all()
 
@@ -181,7 +107,7 @@ def get_posts(ticker):
             "id": post.id,
             "body": post.body,
             "stance": post.stance,
-            "author": post.author.username,
+            "author": post.author.email,
             "created_at": post.created_at.isoformat(),
         }
         for post in posts
@@ -199,10 +125,19 @@ with app.app_context():
             last_updated=datetime.now(timezone.utc),
             current_price=333.26,
             market_cap=4_894_000_000_000,
+            pe_ratio=34.5,
+            revenue=391_000_000_000,
+            revenue_growth=0.08,
+            profit_margins=0.26,
+            free_cashflow=99_000_000_000,
+            debt=110_000_000_000,
+            analyst_recommendation="buy",
+            price_target=250.0,
         )
 
         db.session.add(aapl_stock)
         db.session.commit()
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     app.run(debug=True)
