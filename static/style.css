@@ -107,7 +107,8 @@ body.centered main {
     color: var(--soft);
 }
 
-input {
+input,
+textarea {
     width: 100%;
     font: inherit;
     padding: 9px 11px;
@@ -115,6 +116,10 @@ input {
     border-radius: 6px;
     background: var(--panel);
     color: var(--ink);
+}
+
+textarea {
+    resize: vertical;
 }
 
 .btn {
@@ -237,6 +242,24 @@ input {
     font-size: 22px;
 }
 
+.back-link {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    text-decoration: none;
+    color: var(--soft);
+}
+
+.back-link:hover {
+    color: var(--ink);
+}
+
+.discuss-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
 .table-wrap {
     overflow-x: auto;
 }
@@ -291,9 +314,95 @@ input {
     white-space: nowrap;
 }
 
-.pill.buy {
+.pill.buy,
+.pill.bullish {
     border-color: var(--up);
     color: var(--up);
+}
+
+.pill.bearish {
+    border-color: var(--down);
+    color: var(--down);
+}
+
+.composer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.composer-foot {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stance-options {
+    display: flex;
+    gap: 14px;
+    margin-right: auto;
+}
+
+.stance-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--soft);
+    cursor: pointer;
+}
+
+.stance-option input {
+    width: auto;
+}
+
+.posts {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.post {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+}
+
+.post-avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+}
+
+.post-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.post-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.post-author {
+    font-weight: 600;
+}
+
+.post-body p {
+    margin: 0;
+    font-size: 14px;
 }
 
 .news {

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AAPL Discussion · Stock Tracker</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="logo" href="#">◆ StockTrack</a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#">Discover</a>
+            <a href="#">Portfolios</a>
+            <a href="#">News</a>
+        </nav>
+        <div class="topbar-end">
+            <span class="who">demo</span>
+            <a class="btn-link" href="#">Sign out</a>
+        </div>
+    </header>
+
+    <main>
+        <a class="back-link" href="dashboard.html">&larr; Dashboard</a>
+
+        <div class="discuss-head">
+            <h1 class="page-title">AAPL <span class="dim">Apple Inc.</span></h1>
+        </div>
+
+        <div class="grid">
+            <section class="card">
+                <div class="card-head"><h2>New post</h2></div>
+
+                <form method="post" action="/stock/AAPL/discussion" class="composer">
+                    <textarea name="body" rows="3" maxlength="500"
+                              placeholder="Share your take on AAPL..."></textarea>
+
+                    <div class="composer-foot">
+                        <div class="stance-options">
+                            <label class="stance-option bullish">
+                                <input type="radio" name="stance" value="bullish">
+                                Bullish
+                            </label>
+                            <label class="stance-option neutral">
+                                <input type="radio" name="stance" value="neutral" checked>
+                                Neutral
+                            </label>
+                            <label class="stance-option bearish">
+                                <input type="radio" name="stance" value="bearish">
+                                Bearish
+                            </label>
+                        </div>
+
+                        <button class="btn btn-primary" type="submit">Post</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <ul class="posts">
+            <li class="post">
+                <div class="post-avatar"></div>
+                <div class="post-body">
+                    <div class="post-meta">
+                        <span class="post-author">alex@example.com</span>
+                        <span class="pill bullish">bullish</span>
+                        <span class="dim">12m ago</span>
+                    </div>
+                    <p>Services revenue keeps compounding — this still looks underpriced relative to free cash flow.</p>
+                </div>
+            </li>
+            <li class="post">
+                <div class="post-avatar"></div>
+                <div class="post-body">
+                    <div class="post-meta">
+                        <span class="post-author">priya@example.com</span>
+                        <span class="pill neutral">neutral</span>
+                        <span class="dim">1h ago</span>
+                    </div>
+                    <p>Holding steady into earnings. Waiting on iPhone unit guidance before adding.</p>
+                </div>
+            </li>
+            <li class="post">
+                <div class="post-avatar"></div>
+                <div class="post-body">
+                    <div class="post-meta">
+                        <span class="post-author">sam@example.com</span>
+                        <span class="pill bearish">bearish</span>
+                        <span class="dim">3h ago</span>
+                    </div>
+                    <p>Valuation is stretched at 34x earnings with growth slowing. Trimming here.</p>
+                </div>
+            </li>
+        </ul>
+    </main>
+</body>
+</html>
