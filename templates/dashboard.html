@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard · Stock Tracker</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="logo" href="#">◆ StockTrack</a>
+        <nav>
+            <a class="active" href="#">Dashboard</a>
+            <a href="#">Discover</a>
+            <a href="#">Portfolios</a>
+            <a href="#">News</a>
+        </nav>
+        <div class="topbar-end">
+            <span class="who">demo</span>
+            <a class="btn-link" href="#">Sign out</a>
+        </div>
+    </header>
+
+    <main>
+        <h1 class="page-title">Dashboard</h1>
+
+        <div class="grid">
+            <section class="card">
+                <div class="card-head">
+                    <h2>Watchlist</h2>
+                    <form method="post" action="/watchlist/add" class="inline-form">
+                        <input name="ticker" placeholder="Add ticker" aria-label="Ticker" maxlength="10">
+                        <button class="btn" type="submit">Add</button>
+                    </form>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Price</th>
+                                <th>Change</th>
+                                <th>Market cap</th>
+                                <th>P/E</th>
+                                <th>Target</th>
+                                <th>Rating</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ticker">AAPL<span class="co">Apple Inc.</span></td>
+                                <td class="nums">228.42</td>
+                                <td class="nums up">+1.19%</td>
+                                <td class="nums">$3.46T</td>
+                                <td class="nums">31.2</td>
+                                <td class="nums">245.00</td>
+                                <td><span class="pill buy">buy</span></td>
+                                <td><a class="btn-link" href="#">Remove</a></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker">NVDA<span class="co">NVIDIA Corp.</span></td>
+                                <td class="nums">120.91</td>
+                                <td class="nums up">+2.80%</td>
+                                <td class="nums">$2.97T</td>
+                                <td class="nums">64.8</td>
+                                <td class="nums">140.00</td>
+                                <td><span class="pill buy">strong buy</span></td>
+                                <td><a class="btn-link" href="#">Remove</a></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker">TSLA<span class="co">Tesla Inc.</span></td>
+                                <td class="nums">248.13</td>
+                                <td class="nums down">−1.52%</td>
+                                <td class="nums">$791.2B</td>
+                                <td class="nums">70.4</td>
+                                <td class="nums">220.00</td>
+                                <td><span class="pill hold">hold</span></td>
+                                <td><a class="btn-link" href="#">Remove</a></td>
+                            </tr>
+                            <tr>
+                                <td class="ticker">MSFT<span class="co">Microsoft Corp.</span></td>
+                                <td class="nums">449.78</td>
+                                <td class="nums up">+0.51%</td>
+                                <td class="nums">$3.34T</td>
+                                <td class="nums">38.9</td>
+                                <td class="nums">480.00</td>
+                                <td><span class="pill buy">buy</span></td>
+                                <td><a class="btn-link" href="#">Remove</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head"><h2>News</h2></div>
+                <ul class="news">
+                    <li>
+                        <a href="#">Apple suppliers ramp output ahead of autumn launch</a>
+                        <span class="dim">Reuters · 12m ago</span>
+                    </li>
+                    <li>
+                        <a href="#">Chip demand stays hot as data-centre orders climb</a>
+                        <span class="dim">Bloomberg · 1h ago</span>
+                    </li>
+                    <li>
+                        <a href="#">Fed holds rates steady, signals one cut this year</a>
+                        <span class="dim">CNBC · 3h ago</span>
+                    </li>
+                    <li>
+                        <a href="#">EV price war pressures margins into Q3</a>
+                        <span class="dim">WSJ · 5h ago</span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

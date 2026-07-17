@@ -1,0 +1,27 @@
+### Create user
+
+POST http://127.0.0.1:5000/users
+Content-Type: application/json
+
+{
+  "username": "cristopher",
+  "email": "cristopher@example.com",
+  "password": "testpassword"
+}
+
+
+### Create discussion post
+
+POST http://127.0.0.1:5000/stock/AAPL/discussion
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "body": "Apple looks strong long term.",
+  "stance": "bullish"
+}
+
+
+### Get discussion posts
+
+GET http://127.0.0.1:5000/stock/AAPL/discussion
