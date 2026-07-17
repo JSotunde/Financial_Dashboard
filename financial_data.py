@@ -8,7 +8,7 @@ headers = {
 }
 
 def get_stock_data(ticker):
-    url = f"https://sugra.ai/api/v2/quotes/{ticker}"
+    url = f"https://sugra.ai/api/v2/quotes/{ticker}/info"
     response = requests.get(url, headers=headers, params=params)
     return response.json()["data"]
 def get_news(ticker):

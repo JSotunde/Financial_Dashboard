@@ -17,10 +17,10 @@ def get_or_refresh_stock(stock):
     try:
         data = get_stock_data(stock.ticker)
 
-        stock.current_price = data.get("price")
+        stock.current_price = data.get("currentPrice")
         stock.market_cap = data.get("marketCap")
-        stock.pe_ratio = data.get("peRatio")
-        stock.revenue = data.get("revenue")
+        stock.pe_ratio = data.get("trailingPE")
+        stock.revenue = data.get("totalRevenue")
         stock.revenue_growth = data.get("revenueGrowth")
         stock.profit_margins = data.get("profitMargins")
         stock.free_cashflow = data.get("freeCashflow")
@@ -58,7 +58,7 @@ def get_or_refresh_news(stock):
         new_articles = []
 
         for article_data in news_data:
-            published_at = article_data.get("publishedAt")
+            published_at = article_data.get("pubDate")
             if published_at:
                 published_at = datetime.fromisoformat(
                     published_at.replace("Z", "+00:00")
@@ -68,7 +68,7 @@ def get_or_refresh_news(stock):
                 stock_ticker=stock.ticker,
                 title=article_data["title"],
                 source=article_data.get("source"),
-                url=article_data["url"],
+                url=article_data["link"],
                 published_at=published_at,
             )
             db.session.add(article)
