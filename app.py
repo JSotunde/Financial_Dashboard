@@ -10,6 +10,7 @@ from flask_login import login_required
 from extensions import db, login_manager
 from auth import auth_bp
 from models import User, Stock, DiscussionPost, POST_BODY_LIMIT
+from stock_service import get_or_refresh_stock
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
@@ -87,6 +88,37 @@ def create_post(ticker):
         "author": post.author.email,
         "created_at": post.created_at.isoformat(),
     }, 201
+
+@app.get("/stock/<ticker>")
+def stock_details(ticker):
+    stock = db.session.get(Stock, ticker.upper())
+
+    if stock is None:
+        return {"error": "Stock not found"}, 404
+
+    try:
+        stock = get_or_refresh_stock(stock)
+    except Exception:
+        return {"error": "Unable to retrieve stock data"}, 503
+
+    return {
+        "ticker": stock.ticker,
+        "last_updated": (
+            stock.last_updated.isoformat()
+            if stock.last_updated
+            else None
+        ),
+        "current_price": stock.current_price,
+        "market_cap": stock.market_cap,
+        "pe_ratio": stock.pe_ratio,
+        "revenue": stock.revenue,
+        "revenue_growth": stock.revenue_growth,
+        "profit_margins": stock.profit_margins,
+        "free_cashflow": stock.free_cashflow,
+        "debt": stock.debt,
+        "analyst_recommendation": stock.analyst_recommendation,
+        "price_target": stock.price_target,
+    }
 
 
 @app.get("/stock/<ticker>/discussion")

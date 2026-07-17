@@ -25,3 +25,8 @@ Content-Type: application/json
 ### Get discussion posts
 
 GET http://127.0.0.1:5000/stock/AAPL/discussion
+
+
+### Get stock details
+
+GET http://127.0.0.1:5000/stock/AAPL

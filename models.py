@@ -48,7 +48,7 @@ class DiscussionPost(db.Model):
 class WatchlistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    stock_id = db.Column(db.Integer, db.ForeignKey("stock.id"), nullable=False)
+    stock_ticker = db.Column(db.String(10), db.ForeignKey("stock.ticker"), nullable=False)
 
     user = db.relationship("User", back_populates="watchlist_items")
     stock = db.relationship("Stock", back_populates="watchlist_items")
@@ -56,14 +56,14 @@ class WatchlistItem(db.Model):
     __table_args__ = (
         db.UniqueConstraint(
             "user_id",
-            "stock_id",
+            "stock_ticker",
         ),
     )
 
 class HistoricalPrice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    stock_id = db.Column(db.Integer, db.ForeignKey("stock.id"), nullable=False)
+    stock_ticker = db.Column(db.String(10), db.ForeignKey("stock.ticker"), nullable=False)
 
     date = db.Column(db.Date, nullable=False)
     close = db.Column(db.Float, nullable=False)
@@ -72,7 +72,7 @@ class HistoricalPrice(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint(
-            "stock_id",
+            "stock_ticker",
             "date",
         ),
     )
@@ -80,9 +80,9 @@ class HistoricalPrice(db.Model):
 class NewsArticle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    stock_id = db.Column(
-        db.Integer,
-        db.ForeignKey("stock.id"),
+    stock_ticker = db.Column(
+        db.String(10),
+        db.ForeignKey("stock.ticker"),
         nullable=False
     )
 
