@@ -5,11 +5,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, render_template, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from extensions import db, login_manager
 from auth import auth_bp
 from models import User, Stock, DiscussionPost, POST_BODY_LIMIT
+from stock_service import (
+    get_or_refresh_historical_data,
+    get_or_refresh_news,
+    get_or_refresh_stock,
+)
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
@@ -40,6 +45,7 @@ def dashboard():
 
 
 @app.post("/stock/<ticker>/discussion")
+@login_required
 def create_post(ticker):
     stock = db.session.get(Stock, ticker.upper())
 
@@ -51,14 +57,8 @@ def create_post(ticker):
     if not data:
         return {"error": "JSON body required"}, 400
 
-    user_id = data.get("user_id")
     body = data.get("body", "").strip()
     stance = data.get("stance", "neutral")
-
-    user = db.session.get(User, user_id)
-
-    if user is None:
-        return {"error": "User not found"}, 404
 
     if not body:
         return {"error": "Post body cannot be empty"}, 400
@@ -70,7 +70,7 @@ def create_post(ticker):
         return {"error": "Invalid stance"}, 400
 
     post = DiscussionPost(
-        author=user,
+        author=current_user,
         stock=stock,
         body=body,
         stance=stance,
@@ -87,6 +87,59 @@ def create_post(ticker):
         "author": post.author.email,
         "created_at": post.created_at.isoformat(),
     }, 201
+
+@app.get("/stock/<ticker>")
+def stock_details(ticker):
+    stock = db.session.get(Stock, ticker.upper())
+
+    if stock is None:
+        return {"error": "Stock not found"}, 404
+
+    try:
+        stock = get_or_refresh_stock(stock)
+        historical_prices = get_or_refresh_historical_data(stock)
+        news_articles = get_or_refresh_news(stock)
+    except Exception:
+        return {"error": "Unable to retrieve stock data"}, 503
+
+    return {
+        "ticker": stock.ticker,
+        "last_updated": (
+            stock.last_updated.isoformat()
+            if stock.last_updated
+            else None
+        ),
+        "current_price": stock.current_price,
+        "market_cap": stock.market_cap,
+        "pe_ratio": stock.pe_ratio,
+        "revenue": stock.revenue,
+        "revenue_growth": stock.revenue_growth,
+        "profit_margins": stock.profit_margins,
+        "free_cashflow": stock.free_cashflow,
+        "debt": stock.debt,
+        "analyst_recommendation": stock.analyst_recommendation,
+        "price_target": stock.price_target,
+        "historical_prices": [
+            {
+                "date": price.date.isoformat(),
+                "close": price.close,
+            }
+            for price in historical_prices
+        ],
+        "news": [
+            {
+                "title": article.title,
+                "source": article.source,
+                "url": article.url,
+                "published_at": (
+                    article.published_at.isoformat()
+                    if article.published_at
+                    else None
+                ),
+            }
+            for article in news_articles
+        ],
+    }
 
 
 @app.get("/stock/<ticker>/discussion")
