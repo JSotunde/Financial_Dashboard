@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     discussion_posts = db.relationship('DiscussionPost', back_populates='author', lazy=True, cascade="all, delete-orphan")
+    watchlist_items = db.relationship('WatchlistItem', back_populates='user', lazy=True, cascade="all, delete-orphan")
 
 
 class Stock(db.Model):
@@ -29,6 +30,8 @@ class Stock(db.Model):
     analyst_recommendation = db.Column(db.String(50), nullable=False)
     price_target = db.Column(db.Float, nullable=False)
     discussion_posts = db.relationship('DiscussionPost', back_populates='stock', lazy=True, cascade="all, delete-orphan")
+    watchlist_items = db.relationship('WatchlistItem', back_populates='stock', lazy=True, cascade="all, delete-orphan")
+    historical_prices = db.relationship('HistoricalPrice', back_populates='stock', lazy=True, cascade="all, delete-orphan")
 
 
 class DiscussionPost(db.Model):
@@ -41,3 +44,49 @@ class DiscussionPost(db.Model):
     author = db.relationship('User', back_populates='discussion_posts')
     stock = db.relationship('Stock', back_populates='discussion_posts')
     __table_args__ = (CheckConstraint("stance IN ('bullish', 'neutral', 'bearish')"),)
+
+class WatchlistItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    stock_id = db.Column(db.Integer, db.ForeignKey("stock.id"), nullable=False)
+
+    user = db.relationship("User", back_populates="watchlist_items")
+    stock = db.relationship("Stock", back_populates="watchlist_items")
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "user_id",
+            "stock_id",
+        ),
+    )
+
+class HistoricalPrice(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    stock_id = db.Column(db.Integer, db.ForeignKey("stock.id"), nullable=False)
+
+    date = db.Column(db.Date, nullable=False)
+    close = db.Column(db.Float, nullable=False)
+
+    stock = db.relationship("Stock", back_populates="historical_prices")
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "stock_id",
+            "date",
+        ),
+    )
+
+class NewsArticle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    stock_id = db.Column(
+        db.Integer,
+        db.ForeignKey("stock.id"),
+        nullable=False
+    )
+
+    title = db.Column(db.String(300), nullable=False)
+    source = db.Column(db.String(100))
+    url = db.Column(db.String(500), nullable=False, unique=True)
+    published_at = db.Column(db.DateTime)
