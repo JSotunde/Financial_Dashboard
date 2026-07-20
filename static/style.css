@@ -353,3 +353,17 @@ input {
         gap: 12px;
     }
 }
+@keyframes flash {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.flash {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: #ff0000;
+    animation: flash 2.5s ease-in-out forwards;
+}

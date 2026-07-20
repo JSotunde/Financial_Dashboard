@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request
-from flask_login import login_required
+from flask import Flask, redirect, render_template, request, url_for, flash
+from flask_login import current_user, login_required
 
 from extensions import db, login_manager
 from auth import auth_bp
@@ -36,8 +36,58 @@ def index():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', stocks = current_user.watchlist)
 
+@app.route('/watchlist/add', methods=['POST'])
+@login_required
+def add_to_watchlist():
+    ticker = request.form.get('ticker', '').upper().strip()
+    if not ticker:
+        return {"error": "Ticker parameter is required"}, 400
+
+    stock = db.session.get(Stock, ticker)
+    if not stock:
+        get_stock_data = __import__('financial_data').get_stock_data
+        stock_data = get_stock_data(ticker)
+        if not stock_data:
+            flash(f"Stock data for ticker '{ticker}' not found! Try a different ticker.", "error")
+            return redirect(url_for('dashboard'))
+        print(stock_data)
+        stock = Stock(
+            ticker=ticker,
+            name=stock_data['name'],
+            last_updated=datetime.now(timezone.utc),
+            current_price=stock_data['currentPrice'],
+            change_percent=stock_data['changePercent'],
+            market_cap=stock_data['marketCap'],
+            pe_ratio=stock_data['trailingPE'],
+            revenue=stock_data['totalRevenue'],
+            revenue_growth=stock_data['revenueGrowth'],
+            profit_margins=stock_data['profitMargins'],
+            free_cashflow=stock_data['freeCashflow'],
+            debt=stock_data['totalDebt'],
+            analyst_recommendation=stock_data['recommendationKey'],
+            price_target=stock_data['targetMeanPrice'],
+        )
+        db.session.add(stock)
+        db.session.commit()
+
+    current_user.watchlist.append(stock)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+    
+
+@app.route('/watchlist/remove/<ticker>', methods=['POST'])
+@login_required
+def remove_from_watchlist(ticker):
+    stock = db.session.get(Stock, ticker.upper())
+    if not stock:
+        return {"error": "Stock not found"}, 404
+
+    current_user.watchlist.remove(stock)
+    db.session.commit()
+
+    return redirect(url_for('dashboard'))
 
 @app.post("/stock/<ticker>/discussion")
 def create_post(ticker):
@@ -116,27 +166,6 @@ def get_posts(ticker):
 
 with app.app_context():
     db.create_all()
-
-    aapl_stock = db.session.get(Stock, "AAPL")
-
-    if not aapl_stock:
-        aapl_stock = Stock(
-            ticker="AAPL",
-            last_updated=datetime.now(timezone.utc),
-            current_price=333.26,
-            market_cap=4_894_000_000_000,
-            pe_ratio=34.5,
-            revenue=391_000_000_000,
-            revenue_growth=0.08,
-            profit_margins=0.26,
-            free_cashflow=99_000_000_000,
-            debt=110_000_000_000,
-            analyst_recommendation="buy",
-            price_target=250.0,
-        )
-
-        db.session.add(aapl_stock)
-        db.session.commit()
 
 
 if __name__ == '__main__':
