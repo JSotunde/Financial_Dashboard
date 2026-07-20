@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AAPL · Stock Tracker</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="logo" href="#">◆ StockTrack</a>
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#">Discover</a>
+            <a href="#">Portfolios</a>
+            <a href="#">News</a>
+        </nav>
+        <div class="topbar-end">
+            <span class="who">demo</span>
+            <a class="btn-link" href="#">Sign out</a>
+        </div>
+    </header>
+
+    <main>
+        <a class="back-link" href="dashboard.html">&larr; Dashboard</a>
+
+        <div class="stock-head">
+            <div>
+                <h1 class="page-title stock-ticker">AAPL</h1>
+                <span class="stock-price">$333.26</span>
+                <span class="dim stock-updated">Updated 14 minutes ago</span>
+            </div>
+            <div class="stock-actions">
+                <a class="btn" href="discussion.html">Discussion</a>
+                <button class="btn btn-primary" type="button">+ Watchlist</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <section class="card">
+                <div class="card-head"><h2>Price history</h2></div>
+                <div class="chart">
+                    <svg viewBox="0 0 560 200" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0" stop-color="var(--accent)" stop-opacity="0.25" />
+                                <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <polygon
+                            points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40 560,200 0,200"
+                            fill="url(#chartFill)" />
+                        <polyline
+                            points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40"
+                            fill="none" stroke="var(--accent)" stroke-width="2" />
+                    </svg>
+                </div>
+
+                <div class="card-head metrics-head"><h2>Key metrics</h2></div>
+                <div class="metrics">
+                    <div class="metric">
+                        <span class="metric-label">Market cap</span>
+                        <span class="metric-value">$4.89T</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">P/E ratio</span>
+                        <span class="metric-value">34.5</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Price target</span>
+                        <span class="metric-value">$250.00</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Rating</span>
+                        <span class="metric-value"><span class="pill buy">buy</span></span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Revenue</span>
+                        <span class="metric-value">$391.0B</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Revenue growth</span>
+                        <span class="metric-value up">+8.0%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Profit margin</span>
+                        <span class="metric-value">26.0%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Free cash flow</span>
+                        <span class="metric-value">$99.0B</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total debt</span>
+                        <span class="metric-value">$110.0B</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="card-head"><h2>News</h2></div>
+                <ul class="news">
+                    <li>
+                        <a href="#">Apple suppliers ramp output ahead of autumn launch</a>
+                        <span class="dim">Reuters · 12m ago</span>
+                    </li>
+                    <li>
+                        <a href="#">Services growth offsets slower hardware unit sales</a>
+                        <span class="dim">Bloomberg · 2h ago</span>
+                    </li>
+                    <li>
+                        <a href="#">Analysts weigh in ahead of next earnings call</a>
+                        <span class="dim">CNBC · 6h ago</span>
+                    </li>
+                </ul>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
