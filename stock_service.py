@@ -18,6 +18,7 @@ def get_or_refresh_stock(stock):
         data = get_stock_data(stock.ticker)
 
         stock.current_price = data.get("currentPrice")
+        stock.change_percent = data.get("changePercent")
         stock.market_cap = data.get("marketCap")
         stock.pe_ratio = data.get("trailingPE")
         stock.revenue = data.get("totalRevenue")

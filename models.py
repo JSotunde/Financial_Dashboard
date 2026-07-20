@@ -18,9 +18,11 @@ class User(UserMixin, db.Model):
 
 class Stock(db.Model):
     ticker = db.Column(db.String(10), primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
     last_updated = db.Column(db.DateTime)
     news_last_updated = db.Column(db.DateTime)
     current_price = db.Column(db.Float)
+    change_percent = db.Column(db.Float, nullable=True)
     market_cap = db.Column(db.Float)
     pe_ratio = db.Column(db.Float)
     revenue = db.Column(db.Float)

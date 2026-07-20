@@ -8,7 +8,7 @@
 </head>
 <body>
     <header class="topbar">
-        <a class="logo" href="#">◆ StockTrack</a>
+        <a class="logo" href="#">◆ Bullish</a>
         <nav>
             <a class="active" href="#">Dashboard</a>
             <a href="#">Discover</a>
@@ -22,6 +22,7 @@
     </header>
 
     <main>
+        
         <h1 class="page-title">Dashboard</h1>
 
         <div class="grid">
@@ -48,47 +49,32 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="watchlist_contents">
+                            {% for stock in stocks %}
                             <tr>
-                                <td class="ticker">AAPL<span class="co">Apple Inc.</span></td>
-                                <td class="nums">228.42</td>
-                                <td class="nums up">+1.19%</td>
-                                <td class="nums">$3.46T</td>
-                                <td class="nums">31.2</td>
-                                <td class="nums">245.00</td>
-                                <td><span class="pill buy">buy</span></td>
-                                <td><a class="btn-link" href="#">Remove</a></td>
+                                <td class="ticker">{{ stock.ticker }}<span class="co">{{ stock.name.title() }}</span></td>
+                                <td class="nums">{{ "${:,.2f}".format(stock.current_price) }}</td>
+                                {% if stock.change_percent is none %}
+                                <td class="nums">—</td>
+                                {% else %}
+                                <td class="nums {{ 'up' if stock.change_percent > 0 else 'down' }}">{{ "{:,.2f}%".format(stock.change_percent) }}</td>
+                                {% endif %}
+                                <td class="nums">{{ "${:,.2f}".format(stock.market_cap) }}</td>
+                                <td class="nums">{{ "{:,.2f}".format(stock.pe_ratio) }}</td>
+                                <td class="nums">{{ "${:,.2f}".format(stock.price_target) }}</td>
+                                <td><span class="pill {{ stock.analyst_recommendation.lower() }}">{{ stock.analyst_recommendation }}</span></td>
+                                <td>
+                                    <form method="post" action="/watchlist/remove/{{ stock.ticker }}">
+                                        <button class="btn-link" type="submit">Remove</button>
+                                    </form>
+                                </td>
                             </tr>
+                            {% endfor %}
+                            {% if stocks|length == 0 %}
                             <tr>
-                                <td class="ticker">NVDA<span class="co">NVIDIA Corp.</span></td>
-                                <td class="nums">120.91</td>
-                                <td class="nums up">+2.80%</td>
-                                <td class="nums">$2.97T</td>
-                                <td class="nums">64.8</td>
-                                <td class="nums">140.00</td>
-                                <td><span class="pill buy">strong buy</span></td>
-                                <td><a class="btn-link" href="#">Remove</a></td>
+                                <td colspan="8" class="text-center">No stocks in watchlist</td>
                             </tr>
-                            <tr>
-                                <td class="ticker">TSLA<span class="co">Tesla Inc.</span></td>
-                                <td class="nums">248.13</td>
-                                <td class="nums down">−1.52%</td>
-                                <td class="nums">$791.2B</td>
-                                <td class="nums">70.4</td>
-                                <td class="nums">220.00</td>
-                                <td><span class="pill hold">hold</span></td>
-                                <td><a class="btn-link" href="#">Remove</a></td>
-                            </tr>
-                            <tr>
-                                <td class="ticker">MSFT<span class="co">Microsoft Corp.</span></td>
-                                <td class="nums">449.78</td>
-                                <td class="nums up">+0.51%</td>
-                                <td class="nums">$3.34T</td>
-                                <td class="nums">38.9</td>
-                                <td class="nums">480.00</td>
-                                <td><span class="pill buy">buy</span></td>
-                                <td><a class="btn-link" href="#">Remove</a></td>
-                            </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -116,6 +102,13 @@
                 </ul>
             </section>
         </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
     </main>
 </body>
 </html>
