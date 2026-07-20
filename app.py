@@ -4,12 +4,17 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, redirect, render_template, request, url_for, flash
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from extensions import db, login_manager
 from auth import auth_bp
-from models import User, Stock, DiscussionPost, POST_BODY_LIMIT
+from models import User, Stock, DiscussionPost, WatchlistItem, POST_BODY_LIMIT
+from stock_service import (
+    get_or_refresh_historical_data,
+    get_or_refresh_news,
+    get_or_refresh_stock,
+)
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
@@ -36,7 +41,8 @@ def index():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', stocks = current_user.watchlist)
+    stocks = [item.stock for item in current_user.watchlist_items]
+    return render_template('dashboard.html', stocks=stocks)
 
 @app.route('/watchlist/add', methods=['POST'])
 @login_required
@@ -72,24 +78,32 @@ def add_to_watchlist():
         db.session.add(stock)
         db.session.commit()
 
-    current_user.watchlist.append(stock)
-    db.session.commit()
+    already_watched = WatchlistItem.query.filter_by(
+        user_id=current_user.id, stock_ticker=stock.ticker
+    ).first()
+    if not already_watched:
+        db.session.add(WatchlistItem(user_id=current_user.id, stock_ticker=stock.ticker))
+        db.session.commit()
+
     return redirect(url_for('dashboard'))
-    
+
 
 @app.route('/watchlist/remove/<ticker>', methods=['POST'])
 @login_required
 def remove_from_watchlist(ticker):
-    stock = db.session.get(Stock, ticker.upper())
-    if not stock:
-        return {"error": "Stock not found"}, 404
+    item = WatchlistItem.query.filter_by(
+        user_id=current_user.id, stock_ticker=ticker.upper()
+    ).first()
+    if not item:
+        return {"error": "Stock not found in watchlist"}, 404
 
-    current_user.watchlist.remove(stock)
+    db.session.delete(item)
     db.session.commit()
 
     return redirect(url_for('dashboard'))
 
 @app.post("/stock/<ticker>/discussion")
+@login_required
 def create_post(ticker):
     stock = db.session.get(Stock, ticker.upper())
 
@@ -101,14 +115,8 @@ def create_post(ticker):
     if not data:
         return {"error": "JSON body required"}, 400
 
-    user_id = data.get("user_id")
     body = data.get("body", "").strip()
     stance = data.get("stance", "neutral")
-
-    user = db.session.get(User, user_id)
-
-    if user is None:
-        return {"error": "User not found"}, 404
 
     if not body:
         return {"error": "Post body cannot be empty"}, 400
@@ -120,7 +128,7 @@ def create_post(ticker):
         return {"error": "Invalid stance"}, 400
 
     post = DiscussionPost(
-        author=user,
+        author=current_user,
         stock=stock,
         body=body,
         stance=stance,
@@ -137,6 +145,59 @@ def create_post(ticker):
         "author": post.author.email,
         "created_at": post.created_at.isoformat(),
     }, 201
+
+@app.get("/stock/<ticker>")
+def stock_details(ticker):
+    stock = db.session.get(Stock, ticker.upper())
+
+    if stock is None:
+        return {"error": "Stock not found"}, 404
+
+    try:
+        stock = get_or_refresh_stock(stock)
+        historical_prices = get_or_refresh_historical_data(stock)
+        news_articles = get_or_refresh_news(stock)
+    except Exception:
+        return {"error": "Unable to retrieve stock data"}, 503
+
+    return {
+        "ticker": stock.ticker,
+        "last_updated": (
+            stock.last_updated.isoformat()
+            if stock.last_updated
+            else None
+        ),
+        "current_price": stock.current_price,
+        "market_cap": stock.market_cap,
+        "pe_ratio": stock.pe_ratio,
+        "revenue": stock.revenue,
+        "revenue_growth": stock.revenue_growth,
+        "profit_margins": stock.profit_margins,
+        "free_cashflow": stock.free_cashflow,
+        "debt": stock.debt,
+        "analyst_recommendation": stock.analyst_recommendation,
+        "price_target": stock.price_target,
+        "historical_prices": [
+            {
+                "date": price.date.isoformat(),
+                "close": price.close,
+            }
+            for price in historical_prices
+        ],
+        "news": [
+            {
+                "title": article.title,
+                "source": article.source,
+                "url": article.url,
+                "published_at": (
+                    article.published_at.isoformat()
+                    if article.published_at
+                    else None
+                ),
+            }
+            for article in news_articles
+        ],
+    }
 
 
 @app.get("/stock/<ticker>/discussion")
