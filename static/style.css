@@ -60,6 +60,12 @@ body.centered main {
     align-items: start;
 }
 
+.col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
 .topbar {
     display: flex;
     align-items: center;
@@ -254,12 +260,6 @@ textarea {
     color: var(--ink);
 }
 
-.discuss-head {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-}
-
 .stock-head {
     display: flex;
     align-items: flex-start;
@@ -274,8 +274,14 @@ textarea {
 }
 
 .stock-price {
+    margin-right: 8px;
     font-size: 22px;
     font-weight: 700;
+}
+
+.stock-change {
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .stock-updated {
@@ -372,6 +378,16 @@ textarea {
 
 .table .ticker {
     font-weight: 700;
+}
+
+.table .ticker a {
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.table .ticker a:hover {
+    color: var(--accent);
+    text-decoration: underline;
 }
 
 .co {
@@ -529,6 +545,11 @@ textarea {
 
 .nums {
     font-variant-numeric: tabular-nums;
+}
+
+.text-center {
+    text-align: center;
+    color: var(--dim);
 }
 
 @media (max-width: 860px) {

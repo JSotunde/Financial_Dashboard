@@ -11,9 +11,6 @@
         <a class="logo" href="#">◆ Bullish</a>
         <nav>
             <a class="active" href="#">Dashboard</a>
-            <a href="#">Discover</a>
-            <a href="#">Portfolios</a>
-            <a href="#">News</a>
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
@@ -52,7 +49,7 @@
                         <tbody id="watchlist_contents">
                             {% for stock in stocks %}
                             <tr>
-                                <td class="ticker">{{ stock.ticker }}<span class="co">{{ stock.name.title() }}</span></td>
+                                <td class="ticker"><a href="/stock/{{ stock.ticker }}">{{ stock.ticker }}</a><span class="co">{{ stock.name.title() }}</span></td>
                                 <td class="nums">{{ "${:,.2f}".format(stock.current_price) }}</td>
                                 {% if stock.change_percent is none %}
                                 <td class="nums">—</td>

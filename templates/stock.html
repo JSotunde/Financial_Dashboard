@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AAPL · Stock Tracker</title>
+    <title>AAPL · Bullish</title>
     <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
     <header class="topbar">
-        <a class="logo" href="#">◆ StockTrack</a>
+        <a class="logo" href="#">◆ Bullish</a>
         <nav>
             <a href="dashboard.html">Dashboard</a>
-            <a href="#">Discover</a>
-            <a href="#">Portfolios</a>
-            <a href="#">News</a>
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
@@ -27,93 +24,164 @@
         <div class="stock-head">
             <div>
                 <h1 class="page-title stock-ticker">AAPL</h1>
-                <span class="stock-price">$333.26</span>
+                <span class="dim">Apple Inc.</span>
+                <div>
+                    <span class="stock-price">$333.26</span>
+                    <span class="stock-change up">+1.82%</span>
+                </div>
                 <span class="dim stock-updated">Updated 14 minutes ago</span>
             </div>
             <div class="stock-actions">
-                <a class="btn" href="discussion.html">Discussion</a>
                 <button class="btn btn-primary" type="button">+ Watchlist</button>
             </div>
         </div>
 
         <div class="grid">
-            <section class="card">
-                <div class="card-head"><h2>Price history</h2></div>
-                <div class="chart">
-                    <svg viewBox="0 0 560 200" preserveAspectRatio="none">
-                        <defs>
-                            <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
-                                <stop offset="0" stop-color="var(--accent)" stop-opacity="0.25" />
-                                <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                            </linearGradient>
-                        </defs>
-                        <polygon
-                            points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40 560,200 0,200"
-                            fill="url(#chartFill)" />
-                        <polyline
-                            points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40"
-                            fill="none" stroke="var(--accent)" stroke-width="2" />
-                    </svg>
-                </div>
+            <div class="col">
+                <section class="card">
+                    <div class="card-head"><h2>Price history</h2></div>
+                    <div class="chart">
+                        <svg viewBox="0 0 560 200" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0" stop-color="var(--accent)" stop-opacity="0.25" />
+                                    <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
+                                </linearGradient>
+                            </defs>
+                            <polygon
+                                points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40 560,200 0,200"
+                                fill="url(#chartFill)" />
+                            <polyline
+                                points="0,150 40,158 80,140 120,146 160,120 200,128 240,104 280,112 320,90 360,96 400,72 440,80 480,58 520,66 560,40"
+                                fill="none" stroke="var(--accent)" stroke-width="2" />
+                        </svg>
+                    </div>
 
-                <div class="card-head metrics-head"><h2>Key metrics</h2></div>
-                <div class="metrics">
-                    <div class="metric">
-                        <span class="metric-label">Market cap</span>
-                        <span class="metric-value">$4.89T</span>
+                    <div class="card-head metrics-head"><h2>Key metrics</h2></div>
+                    <div class="metrics">
+                        <div class="metric">
+                            <span class="metric-label">Market cap</span>
+                            <span class="metric-value">$4.89T</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">P/E ratio</span>
+                            <span class="metric-value">34.5</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Price target</span>
+                            <span class="metric-value">$250.00</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Rating</span>
+                            <span class="metric-value"><span class="pill buy">buy</span></span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Revenue</span>
+                            <span class="metric-value">$391.0B</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Revenue growth</span>
+                            <span class="metric-value up">+8.0%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Profit margin</span>
+                            <span class="metric-value">26.0%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Free cash flow</span>
+                            <span class="metric-value">$99.0B</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Total debt</span>
+                            <span class="metric-value">$110.0B</span>
+                        </div>
                     </div>
-                    <div class="metric">
-                        <span class="metric-label">P/E ratio</span>
-                        <span class="metric-value">34.5</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Price target</span>
-                        <span class="metric-value">$250.00</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Rating</span>
-                        <span class="metric-value"><span class="pill buy">buy</span></span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Revenue</span>
-                        <span class="metric-value">$391.0B</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Revenue growth</span>
-                        <span class="metric-value up">+8.0%</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Profit margin</span>
-                        <span class="metric-value">26.0%</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Free cash flow</span>
-                        <span class="metric-value">$99.0B</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">Total debt</span>
-                        <span class="metric-value">$110.0B</span>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <section class="card">
-                <div class="card-head"><h2>News</h2></div>
-                <ul class="news">
-                    <li>
-                        <a href="#">Apple suppliers ramp output ahead of autumn launch</a>
-                        <span class="dim">Reuters · 12m ago</span>
-                    </li>
-                    <li>
-                        <a href="#">Services growth offsets slower hardware unit sales</a>
-                        <span class="dim">Bloomberg · 2h ago</span>
-                    </li>
-                    <li>
-                        <a href="#">Analysts weigh in ahead of next earnings call</a>
-                        <span class="dim">CNBC · 6h ago</span>
-                    </li>
-                </ul>
-            </section>
+                <section class="card">
+                    <div class="card-head"><h2>Discussion</h2></div>
+
+                    <form method="post" action="/stock/AAPL/discussion" class="composer">
+                        <textarea name="body" rows="3" maxlength="500"
+                                  placeholder="Share your take on AAPL..."></textarea>
+
+                        <div class="composer-foot">
+                            <div class="stance-options">
+                                <label class="stance-option bullish">
+                                    <input type="radio" name="stance" value="bullish">
+                                    Bullish
+                                </label>
+                                <label class="stance-option neutral">
+                                    <input type="radio" name="stance" value="neutral" checked>
+                                    Neutral
+                                </label>
+                                <label class="stance-option bearish">
+                                    <input type="radio" name="stance" value="bearish">
+                                    Bearish
+                                </label>
+                            </div>
+
+                            <button class="btn btn-primary" type="submit">Post</button>
+                        </div>
+                    </form>
+
+                    <ul class="posts">
+                        <li class="post">
+                            <div class="post-avatar"></div>
+                            <div class="post-body">
+                                <div class="post-meta">
+                                    <span class="post-author">alex@example.com</span>
+                                    <span class="pill bullish">bullish</span>
+                                    <span class="dim">12m ago</span>
+                                </div>
+                                <p>Services revenue keeps compounding — this still looks underpriced relative to free cash flow.</p>
+                            </div>
+                        </li>
+                        <li class="post">
+                            <div class="post-avatar"></div>
+                            <div class="post-body">
+                                <div class="post-meta">
+                                    <span class="post-author">priya@example.com</span>
+                                    <span class="pill neutral">neutral</span>
+                                    <span class="dim">1h ago</span>
+                                </div>
+                                <p>Holding steady into earnings. Waiting on iPhone unit guidance before adding.</p>
+                            </div>
+                        </li>
+                        <li class="post">
+                            <div class="post-avatar"></div>
+                            <div class="post-body">
+                                <div class="post-meta">
+                                    <span class="post-author">sam@example.com</span>
+                                    <span class="pill bearish">bearish</span>
+                                    <span class="dim">3h ago</span>
+                                </div>
+                                <p>Valuation is stretched at 34x earnings with growth slowing. Trimming here.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="col">
+                <section class="card">
+                    <div class="card-head"><h2>News</h2></div>
+                    <ul class="news">
+                        <li>
+                            <a href="#">Apple suppliers ramp output ahead of autumn launch</a>
+                            <span class="dim">Reuters · 12m ago</span>
+                        </li>
+                        <li>
+                            <a href="#">Services growth offsets slower hardware unit sales</a>
+                            <span class="dim">Bloomberg · 2h ago</span>
+                        </li>
+                        <li>
+                            <a href="#">Analysts weigh in ahead of next earnings call</a>
+                            <span class="dim">CNBC · 6h ago</span>
+                        </li>
+                    </ul>
+                </section>
+            </div>
         </div>
     </main>
 </body>
