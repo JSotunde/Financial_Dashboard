@@ -59,6 +59,10 @@ def get_or_refresh_news(stock):
         new_articles = []
 
         for article_data in news_data:
+            url = article_data["link"]
+            if NewsArticle.query.filter_by(url=url).first():
+                continue
+
             published_at = article_data.get("pubDate")
             if published_at:
                 published_at = datetime.fromisoformat(
@@ -69,7 +73,7 @@ def get_or_refresh_news(stock):
                 stock_ticker=stock.ticker,
                 title=article_data["title"],
                 source=article_data.get("source"),
-                url=article_data["link"],
+                url=url,
                 published_at=published_at,
             )
             db.session.add(article)

@@ -157,8 +157,8 @@ def stock_details(ticker):
         stock = get_or_refresh_stock(stock)
         historical_prices = get_or_refresh_historical_data(stock)
         news_articles = get_or_refresh_news(stock)
-    except Exception:
-        return {"error": "Unable to retrieve stock data"}, 503
+    except Exception as e:
+        return {"error": "Unable to retrieve stock data: " + str(e)}, 503
 
     return {
         "ticker": stock.ticker,
