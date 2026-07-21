@@ -110,22 +110,23 @@ def create_post(ticker):
     if stock is None:
         return {"error": "Stock not found"}, 404
 
-    data = request.get_json()
-
-    if not data:
-        return {"error": "JSON body required"}, 400
+    data = request.form
 
     body = data.get("body", "").strip()
     stance = data.get("stance", "neutral")
 
     if not body:
-        return {"error": "Post body cannot be empty"}, 400
+        flash("Post body cannot be empty", "error")
+        return redirect(url_for("stock_details", ticker=stock.ticker))
 
     if len(body) > POST_BODY_LIMIT:
-        return {"error": f"Post body cannot exceed {POST_BODY_LIMIT} characters"}, 400
+        message = f"Post body cannot exceed {POST_BODY_LIMIT} characters"
+        flash(message, "error")
+        return redirect(url_for("stock_details", ticker=stock.ticker))
 
     if stance not in ("bullish", "neutral", "bearish"):
-        return {"error": "Invalid stance"}, 400
+        flash("Invalid stance", "error")
+        return redirect(url_for("stock_details", ticker=stock.ticker))
 
     post = DiscussionPost(
         author=current_user,
@@ -137,14 +138,7 @@ def create_post(ticker):
     db.session.add(post)
     db.session.commit()
 
-    return {
-        "id": post.id,
-        "ticker": post.stock_ticker,
-        "body": post.body,
-        "stance": post.stance,
-        "author": post.author.email,
-        "created_at": post.created_at.isoformat(),
-    }, 201
+    return redirect(url_for("stock_details", ticker=stock.ticker))
 
 @app.get("/stock/<ticker>")
 def stock_details(ticker):
@@ -160,69 +154,20 @@ def stock_details(ticker):
     except Exception as e:
         return {"error": "Unable to retrieve stock data: " + str(e)}, 503
 
-    return {
-        "ticker": stock.ticker,
-        "last_updated": (
-            stock.last_updated.isoformat()
-            if stock.last_updated
-            else None
-        ),
-        "current_price": stock.current_price,
-        "market_cap": stock.market_cap,
-        "pe_ratio": stock.pe_ratio,
-        "revenue": stock.revenue,
-        "revenue_growth": stock.revenue_growth,
-        "profit_margins": stock.profit_margins,
-        "free_cashflow": stock.free_cashflow,
-        "debt": stock.debt,
-        "analyst_recommendation": stock.analyst_recommendation,
-        "price_target": stock.price_target,
-        "historical_prices": [
-            {
-                "date": price.date.isoformat(),
-                "close": price.close,
-            }
-            for price in historical_prices
-        ],
-        "news": [
-            {
-                "title": article.title,
-                "source": article.source,
-                "url": article.url,
-                "published_at": (
-                    article.published_at.isoformat()
-                    if article.published_at
-                    else None
-                ),
-            }
-            for article in news_articles
-        ],
-    }
-
-
-@app.get("/stock/<ticker>/discussion")
-def get_posts(ticker):
-    stock = db.session.get(Stock, ticker.upper())
-
-    if stock is None:
-        return {"error": "Stock not found"}, 404
-
     posts = db.session.scalars(
         db.select(DiscussionPost)
         .where(DiscussionPost.stock_ticker == stock.ticker)
         .order_by(DiscussionPost.created_at.desc())
     ).all()
 
-    return [
-        {
-            "id": post.id,
-            "body": post.body,
-            "stance": post.stance,
-            "author": post.author.email,
-            "created_at": post.created_at.isoformat(),
-        }
-        for post in posts
-    ]
+    return render_template(
+        "stock.html",
+        stock=stock,
+        historical_prices=historical_prices,
+        news_articles=news_articles,
+        posts=posts,
+        post_body_limit=POST_BODY_LIMIT,
+    )
 
 
 with app.app_context():
