@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AAPL · Bullish</title>
+    <title>{{ stock.ticker }} · Bullish</title>
     <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
     <header class="topbar">
-        <a class="logo" href="#">◆ Bullish</a>
+        <a class="logo" href="{{ url_for('index') }}">◆ Bullish</a>
         <nav>
-            <a href="dashboard.html">Dashboard</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
@@ -19,7 +19,7 @@
     </header>
 
     <main>
-        <a class="back-link" href="dashboard.html">&larr; Dashboard</a>
+        <a class="back-link" href="{{ url_for('dashboard') }}">&larr; Dashboard</a>
 
         <div class="stock-head">
             <div>
@@ -105,9 +105,9 @@
                 <section class="card">
                     <div class="card-head"><h2>Discussion</h2></div>
 
-                    <form method="post" action="/stock/AAPL/discussion" class="composer">
+                    <form method="post" action="/stock/{{ stock.ticker }}/discussion" class="composer">
                         <textarea name="body" rows="3" maxlength="500"
-                                  placeholder="Share your take on AAPL..."></textarea>
+                                  placeholder="Share your take on {{ stock.ticker }}..."></textarea>
 
                         <div class="composer-foot">
                             <div class="stance-options">
