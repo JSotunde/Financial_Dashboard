@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from extensions import db
-from financial_data import get_news, get_stock_data
+from financial_data import get_global_news, get_news, get_stock_data
 from models import NewsArticle
 
 PRICE_CACHE_DURATION = timedelta(hours=1)
@@ -100,6 +100,57 @@ def get_or_refresh_news(stock):
             new_articles.append(article)
 
         stock.news_last_updated = now
+        db.session.commit()
+        return new_articles
+
+    except Exception:
+        db.session.rollback()
+
+        if cached_articles:
+            return cached_articles
+
+        raise
+
+def get_or_refresh_global_news():
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    cached_articles = NewsArticle.query.filter_by(stock_ticker=None).all()
+
+    last_fetched = max(
+        (article.fetched_at for article in cached_articles if article.fetched_at is not None),
+        default=None,
+    )
+    if last_fetched is not None and last_fetched + NEWS_CACHE_DURATION > now:
+        return cached_articles
+
+    try:
+        news_data = get_global_news()
+        NewsArticle.query.filter_by(stock_ticker=None).delete()
+        new_articles = []
+
+        for article_data in news_data["items"]:
+            url = article_data["link"]
+            if NewsArticle.query.filter_by(url=url).first():
+                continue
+
+            published_at = article_data.get("published")
+            if published_at:
+                published_at = datetime.fromisoformat(
+                    published_at.replace("Z", "+00:00")
+                ).replace(tzinfo=None)
+
+            article = NewsArticle(
+                stock_ticker=None,
+                title=article_data["title"],
+                source=article_data.get("source"),
+                source_name=article_data.get("source_name"),
+                url=url,
+                published_at=published_at,
+                fetched_at=now,
+            )
+            db.session.add(article)
+            new_articles.append(article)
+
         db.session.commit()
         return new_articles
 

@@ -87,12 +87,14 @@ class NewsArticle(db.Model):
     stock_ticker = db.Column(
         db.String(10),
         db.ForeignKey("stock.ticker"),
-        nullable=False
+        nullable=True
     )
 
     title = db.Column(db.String(300), nullable=False)
     source = db.Column(db.String(100))
+    source_name = db.Column(db.String(100))
     url = db.Column(db.String(500), nullable=False, unique=True)
     published_at = db.Column(db.DateTime)
+    fetched_at = db.Column(db.DateTime)
 
     stock = db.relationship("Stock", back_populates="news_articles")
