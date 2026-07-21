@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AAPL · Bullish</title>
+    <title>{{ stock.ticker }} · Bullish</title>
     <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
     <header class="topbar">
         <a class="logo" href="#">◆ Bullish</a>
         <nav>
-            <a href="dashboard.html">Dashboard</a>
+            <a href="../dashboard">Dashboard</a>
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
@@ -19,12 +19,18 @@
     </header>
 
     <main>
-        <a class="back-link" href="dashboard.html">&larr; Dashboard</a>
+        <a class="back-link" href="../dashboard">&larr; Dashboard</a>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
 
         <div class="stock-head">
             <div>
-                <h1 class="page-title stock-ticker">AAPL</h1>
-                <span class="dim">Apple Inc.</span>
+                <h1 class="page-title stock-ticker">{{ stock.ticker }}</h1>
+                <span class="dim">{{ stock.name }}</span>
                 <div>
                     <span class="stock-price">$333.26</span>
                     <span class="stock-change up">+1.82%</span>
@@ -101,9 +107,9 @@
                 <section class="card">
                     <div class="card-head"><h2>Discussion</h2></div>
 
-                    <form method="post" action="/stock/AAPL/discussion" class="composer">
-                        <textarea name="body" rows="3" maxlength="500"
-                                  placeholder="Share your take on AAPL..."></textarea>
+                    <form method="post" action="{{ url_for('create_post', ticker=stock.ticker) }}" class="composer">
+                        <textarea name="body" rows="3" maxlength="{{ post_body_limit }}" required
+                                  placeholder="Share your take on {{ stock.ticker }}..."></textarea>
 
                         <div class="composer-foot">
                             <div class="stance-options">
@@ -126,39 +132,25 @@
                     </form>
 
                     <ul class="posts">
+                        {% for post in posts %}
                         <li class="post">
                             <div class="post-avatar"></div>
                             <div class="post-body">
                                 <div class="post-meta">
-                                    <span class="post-author">alex@example.com</span>
-                                    <span class="pill bullish">bullish</span>
-                                    <span class="dim">12m ago</span>
+                                    <span class="post-author">{{ post.author.email }}</span>
+                                    <span class="pill {{ post.stance }}">{{ post.stance }}</span>
+                                    <span class="dim">{{ post.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
                                 </div>
-                                <p>Services revenue keeps compounding — this still looks underpriced relative to free cash flow.</p>
+                                <p>{{ post.body }}</p>
                             </div>
                         </li>
+                        {% else %}
                         <li class="post">
-                            <div class="post-avatar"></div>
                             <div class="post-body">
-                                <div class="post-meta">
-                                    <span class="post-author">priya@example.com</span>
-                                    <span class="pill neutral">neutral</span>
-                                    <span class="dim">1h ago</span>
-                                </div>
-                                <p>Holding steady into earnings. Waiting on iPhone unit guidance before adding.</p>
+                                <p class="dim">No posts yet. Start the conversation about {{ stock.ticker }}.</p>
                             </div>
                         </li>
-                        <li class="post">
-                            <div class="post-avatar"></div>
-                            <div class="post-body">
-                                <div class="post-meta">
-                                    <span class="post-author">sam@example.com</span>
-                                    <span class="pill bearish">bearish</span>
-                                    <span class="dim">3h ago</span>
-                                </div>
-                                <p>Valuation is stretched at 34x earnings with growth slowing. Trimming here.</p>
-                            </div>
-                        </li>
+                        {% endfor %}
                     </ul>
                 </section>
             </div>

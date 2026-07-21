@@ -1,20 +1,3 @@
-### Create discussion post
-
-POST http://127.0.0.1:5000/stock/AAPL/discussion
-Content-Type: application/json
-
-{
-  "user_id": 1,
-  "body": "Apple looks strong long term.",
-  "stance": "bullish"
-}
-
-
-### Get discussion posts
-
-GET http://127.0.0.1:5000/stock/AAPL/discussion
-
-
 ### Get stock details
 
 GET http://127.0.0.1:5000/stock/AAPL
