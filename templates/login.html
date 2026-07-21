@@ -24,6 +24,13 @@
 
             <p class="auth-alt">No account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
         </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
     </main>
 </body>
 </html>

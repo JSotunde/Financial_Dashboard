@@ -11,11 +11,22 @@ from extensions import db, login_manager
 from auth import auth_bp
 from models import User, Stock, DiscussionPost, WatchlistItem, POST_BODY_LIMIT
 from stock_service import (
+    get_or_refresh_global_news,
     get_or_refresh_historical_data,
     get_or_refresh_news,
     get_or_refresh_stock,
 )
-
+from financial_data import get_stock_data, get_news, get_global_news
+def abbreviate_number(num):
+    if not num:
+        return "-"
+    if num >= 1_000_000_000_000:
+        return f"{num / 1_000_000_000_000:.2f}T"
+    elif num >= 1_000_000_000:
+        return f"{num / 1_000_000_000:.2f}B"
+    elif num >= 1_000_000:
+        return f"{num / 1_000_000:.2f}M"
+    return f"{num:,}"
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///data.db")
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -26,6 +37,27 @@ login_manager.login_view = 'auth.login'
 db.init_app(app)
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
+
+
+@app.template_filter('money')
+def money_filter(value):
+    if value is None:
+        return "N/A"
+    return f"${value:,.2f}"
+
+
+@app.template_filter('num')
+def num_filter(value):
+    if value is None:
+        return "N/A"
+    return f"{value:,.2f}"
+
+
+@app.template_filter('pct')
+def pct_filter(value):
+    if value is None:
+        return "N/A"
+    return f"{value:,.2f}%"
 
 
 @login_manager.user_loader
@@ -41,8 +73,12 @@ def index():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    for item in current_user.watchlist_items:
+        item.stock = get_or_refresh_stock(item.stock)
     stocks = [item.stock for item in current_user.watchlist_items]
-    return render_template('dashboard.html', stocks=stocks)
+    global_news = get_or_refresh_global_news()
+   
+    return render_template('dashboard.html', stocks=stocks, global_news=global_news)
 
 @app.route('/watchlist/add', methods=['POST'])
 @login_required
@@ -52,9 +88,14 @@ def add_to_watchlist():
         return {"error": "Ticker parameter is required"}, 400
 
     stock = db.session.get(Stock, ticker)
+    
     if not stock:
-        get_stock_data = __import__('financial_data').get_stock_data
-        stock_data = get_stock_data(ticker)
+        try:
+            stock_data = get_stock_data(ticker)
+        except Exception as e:
+            print(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}")
+            flash(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}", "error")
+            return redirect(url_for('dashboard'))
         if not stock_data:
             flash(f"Stock data for ticker '{ticker}' not found! Try a different ticker.", "error")
             return redirect(url_for('dashboard'))
@@ -63,21 +104,21 @@ def add_to_watchlist():
             ticker=ticker,
             name=stock_data['name'],
             last_updated=datetime.now(timezone.utc),
-            current_price=stock_data['currentPrice'],
-            change_percent=stock_data['changePercent'],
-            market_cap=stock_data['marketCap'],
-            pe_ratio=stock_data['trailingPE'],
-            revenue=stock_data['totalRevenue'],
-            revenue_growth=stock_data['revenueGrowth'],
-            profit_margins=stock_data['profitMargins'],
-            free_cashflow=stock_data['freeCashflow'],
-            debt=stock_data['totalDebt'],
-            analyst_recommendation=stock_data['recommendationKey'],
-            price_target=stock_data['targetMeanPrice'],
+            current_price=stock_data.get('currentPrice'),
+            change_percent=stock_data.get('changePercent'),
+            market_cap=stock_data.get('marketCap'),
+            pe_ratio=stock_data.get('trailingPE'),
+            revenue=stock_data.get('totalRevenue'),
+            revenue_growth=stock_data.get('revenueGrowth'),
+            profit_margins=stock_data.get('profitMargins'),
+            free_cashflow=stock_data.get('freeCashflow'),
+            debt=stock_data.get('totalDebt'),
+            analyst_recommendation=stock_data.get('recommendationKey'),
+            price_target=stock_data.get('targetMeanPrice'),
         )
         db.session.add(stock)
         db.session.commit()
-
+    stock = get_or_refresh_stock(stock)
     already_watched = WatchlistItem.query.filter_by(
         user_id=current_user.id, stock_ticker=stock.ticker
     ).first()
@@ -159,6 +200,7 @@ def stock_details(ticker):
         .where(DiscussionPost.stock_ticker == stock.ticker)
         .order_by(DiscussionPost.created_at.desc())
     ).all()
+    stock_news = get_or_refresh_news(stock)
 
     return render_template(
         "stock.html",
@@ -166,6 +208,7 @@ def stock_details(ticker):
         historical_prices=historical_prices,
         news_articles=news_articles,
         posts=posts,
+        stock_news=stock_news,
         post_body_limit=POST_BODY_LIMIT,
     )
 

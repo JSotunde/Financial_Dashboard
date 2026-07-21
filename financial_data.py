@@ -39,9 +39,19 @@ def get_stock_data(ticker):
     else:   
         name_url = f'https://sugra.ai/api/v1/fundamentals/{ticker}/profile'
         name_response = requests.get(name_url, headers=headers)
-        json_data["data"]["name"] = name_response.json()["data"]["name"]
+        json_data["data"]["name"] = name_response.json()["data"]["entity_name"]
     return json_data["data"]
 def get_news(ticker):
     news_url = f"https://sugra.ai/api/v2/quotes/{ticker}/news"
-    news_response = requests.get(news_url, headers=headers)
+    news_params = {
+        "count": 5,}
+    news_response = requests.get(news_url, headers=headers, params=news_params)
     return news_response.json()["data"]
+def get_global_news():
+    global_news_url = 'https://sugra.ai/api/v1/news/search'
+    global_news_params = {
+        "q": "stocks",
+        "limit": 4,
+    }
+    global_news_response = requests.get(global_news_url, headers=headers, params=global_news_params)
+    return global_news_response.json()["data"]

@@ -8,9 +8,9 @@
 </head>
 <body>
     <header class="topbar">
-        <a class="logo" href="#">◆ Bullish</a>
+        <a class="logo" href="{{ url_for('index') }}">◆ Bullish</a>
         <nav>
-            <a href="../dashboard">Dashboard</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
@@ -19,23 +19,21 @@
     </header>
 
     <main>
-        <a class="back-link" href="../dashboard">&larr; Dashboard</a>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endwith %}
+        <a class="back-link" href="{{ url_for('dashboard') }}">&larr; Dashboard</a>
 
         <div class="stock-head">
             <div>
                 <h1 class="page-title stock-ticker">{{ stock.ticker }}</h1>
                 <span class="dim">{{ stock.name }}</span>
                 <div>
-                    <span class="stock-price">$333.26</span>
-                    <span class="stock-change up">+1.82%</span>
+                    <span class="stock-price">{{ stock.current_price | money }}</span>
+                    {% if stock.change_percent is none %}
+                    <span class="stock-change">—</span>
+                    {% else %}
+                    <span class="stock-change {{ 'up' if stock.change_percent > 0 else 'down' }}">{{ stock.change_percent | pct }}</span>
+                    {% endif %}
                 </div>
-                <span class="dim stock-updated">Updated 14 minutes ago</span>
+                <span class="dim stock-updated">{{ stock.last_updated }}</span>
             </div>
             <div class="stock-actions">
                 <button class="btn btn-primary" type="button">+ Watchlist</button>
@@ -67,39 +65,39 @@
                     <div class="metrics">
                         <div class="metric">
                             <span class="metric-label">Market cap</span>
-                            <span class="metric-value">$4.89T</span>
+                            <span class="metric-value">{{ stock.market_cap | money }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">P/E ratio</span>
-                            <span class="metric-value">34.5</span>
+                            <span class="metric-value">{{ stock.pe_ratio | num }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Price target</span>
-                            <span class="metric-value">$250.00</span>
+                            <span class="metric-value">{{ stock.price_target | money }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Rating</span>
-                            <span class="metric-value"><span class="pill buy">buy</span></span>
+                            <span class="metric-value">{{ stock.analyst_recommendation or 'N/A' }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Revenue</span>
-                            <span class="metric-value">$391.0B</span>
+                            <span class="metric-value">{{ stock.revenue | money }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Revenue growth</span>
-                            <span class="metric-value up">+8.0%</span>
+                            <span class="metric-value {{ 'up' if stock.revenue_growth and stock.revenue_growth > 0 else 'down' if stock.revenue_growth else '' }}">{{ stock.revenue_growth | pct }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Profit margin</span>
-                            <span class="metric-value">26.0%</span>
+                            <span class="metric-value">{{ stock.profit_margins | pct }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Free cash flow</span>
-                            <span class="metric-value">$99.0B</span>
+                            <span class="metric-value">{{ stock.free_cashflow | money }}</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Total debt</span>
-                            <span class="metric-value">$110.0B</span>
+                            <span class="metric-value">{{ stock.debt | money }}</span>
                         </div>
                     </div>
                 </section>
@@ -107,8 +105,8 @@
                 <section class="card">
                     <div class="card-head"><h2>Discussion</h2></div>
 
-                    <form method="post" action="{{ url_for('create_post', ticker=stock.ticker) }}" class="composer">
-                        <textarea name="body" rows="3" maxlength="{{ post_body_limit }}" required
+                    <form method="post" action="/stock/{{ stock.ticker }}/discussion" class="composer">
+                        <textarea name="body" rows="3" maxlength="500"
                                   placeholder="Share your take on {{ stock.ticker }}..."></textarea>
 
                         <div class="composer-foot">
@@ -132,25 +130,39 @@
                     </form>
 
                     <ul class="posts">
-                        {% for post in posts %}
                         <li class="post">
                             <div class="post-avatar"></div>
                             <div class="post-body">
                                 <div class="post-meta">
-                                    <span class="post-author">{{ post.author.email }}</span>
-                                    <span class="pill {{ post.stance }}">{{ post.stance }}</span>
-                                    <span class="dim">{{ post.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                                    <span class="post-author">alex@example.com</span>
+                                    <span class="pill bullish">bullish</span>
+                                    <span class="dim">12m ago</span>
                                 </div>
-                                <p>{{ post.body }}</p>
+                                <p>Services revenue keeps compounding — this still looks underpriced relative to free cash flow.</p>
                             </div>
                         </li>
-                        {% else %}
                         <li class="post">
+                            <div class="post-avatar"></div>
                             <div class="post-body">
-                                <p class="dim">No posts yet. Start the conversation about {{ stock.ticker }}.</p>
+                                <div class="post-meta">
+                                    <span class="post-author">priya@example.com</span>
+                                    <span class="pill neutral">neutral</span>
+                                    <span class="dim">1h ago</span>
+                                </div>
+                                <p>Holding steady into earnings. Waiting on iPhone unit guidance before adding.</p>
                             </div>
                         </li>
-                        {% endfor %}
+                        <li class="post">
+                            <div class="post-avatar"></div>
+                            <div class="post-body">
+                                <div class="post-meta">
+                                    <span class="post-author">sam@example.com</span>
+                                    <span class="pill bearish">bearish</span>
+                                    <span class="dim">3h ago</span>
+                                </div>
+                                <p>Valuation is stretched at 34x earnings with growth slowing. Trimming here.</p>
+                            </div>
+                        </li>
                     </ul>
                 </section>
             </div>
@@ -159,7 +171,13 @@
                 <section class="card">
                     <div class="card-head"><h2>News</h2></div>
                     <ul class="news">
+                        {% for article in stock_news %}
                         <li>
+                            <a href="{{ article.url }}" target="_blank">{{ article.title }}</a>
+                            <span class="dim">{{ article.source }} · {{ article.published_at.strftime('%#I:%M %p') }}</span>
+                        </li>
+                        {% endfor %}
+                        <!-- <li>
                             <a href="#">Apple suppliers ramp output ahead of autumn launch</a>
                             <span class="dim">Reuters · 12m ago</span>
                         </li>
@@ -170,7 +188,7 @@
                         <li>
                             <a href="#">Analysts weigh in ahead of next earnings call</a>
                             <span class="dim">CNBC · 6h ago</span>
-                        </li>
+                        </li> -->
                     </ul>
                 </section>
             </div>
