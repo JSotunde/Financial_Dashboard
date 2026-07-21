@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from extensions import db
 from financial_data import get_news, get_stock_data
@@ -6,12 +7,31 @@ from models import NewsArticle
 
 PRICE_CACHE_DURATION = timedelta(hours=1)
 HISTORY_CACHE_DURATION = timedelta(hours=24)
-NEWS_CACHE_DURATION = timedelta(hours=4)
+NEWS_CACHE_DURATION = timedelta(hours=8)
+
+
+def is_market_open(now):
+    eastern_now = now.astimezone(ZoneInfo("America/New_York"))
+
+    if eastern_now.weekday() >= 5:
+        return False
+
+    if eastern_now.hour < 9 or eastern_now.hour >= 16:
+        return False
+
+    if eastern_now.hour == 9 and eastern_now.minute < 30:
+        return False
+
+    return True
 
 def get_or_refresh_stock(stock):
-    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = datetime.now(timezone.utc)
+    current_time = now.replace(tzinfo=None)
 
-    if stock.last_updated is not None and stock.last_updated + PRICE_CACHE_DURATION > now:
+    if stock.last_updated is not None and stock.last_updated + PRICE_CACHE_DURATION > current_time:
+        return stock
+
+    if not is_market_open(now):
         return stock
 
     try:
@@ -29,7 +49,7 @@ def get_or_refresh_stock(stock):
         stock.analyst_recommendation = data.get("recommendationKey")
         stock.price_target = data.get("targetMeanPrice")
 
-        stock.last_updated = now
+        stock.last_updated = current_time
 
         db.session.commit()
         return stock
