@@ -14,7 +14,7 @@
         </nav>
         <div class="topbar-end">
             <span class="who">demo</span>
-            <a class="btn-link" href="#">Sign out</a>
+            <a class="btn-link" href="{{url_for('auth.signout')}}">Sign out</a>
         </div>
     </header>
 
@@ -25,7 +25,11 @@
         <div class="grid">
             <section class="card">
                 <div class="card-head">
-                    <h2>Watchlist</h2>
+                    <h2>Watchlist
+                        {% if show_welcome %}
+                        <span class="metric-help" tabindex="0" data-tooltip="Welcome, we've added a couple stocks for you to get started. Click any ticker to see more info!">?</span>
+                        {% endif %}
+                    </h2>
                     <form method="post" action="/watchlist/add" class="inline-form">
                         <input name="ticker" placeholder="Add ticker" aria-label="Ticker" maxlength="10">
                         <button class="btn" type="submit">Add</button>
@@ -82,7 +86,7 @@
                 <ul class="news">
                     {% for article in global_news %}
                     <li>
-                        <a href="{{ article.url }}">{{ article.title }}</a>
+                        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a>
                         <span class="dim">{{ article.source }} · {{ article.published_at }}</span>
                     </li>
                     {% endfor %}
