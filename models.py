@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    has_seen_welcome = db.Column(db.Boolean, nullable=False, default=False)
     discussion_posts = db.relationship('DiscussionPost', back_populates='author', lazy=True, cascade="all, delete-orphan")
     watchlist_items = db.relationship('WatchlistItem', back_populates='user', lazy=True, cascade="all, delete-orphan")
 
@@ -21,6 +22,8 @@ class Stock(db.Model):
     name = db.Column(db.String(100), nullable=False)
     last_updated = db.Column(db.DateTime)
     news_last_updated = db.Column(db.DateTime)
+    ai_summary = db.Column(db.Text)
+    ai_summary_updated = db.Column(db.DateTime)
     current_price = db.Column(db.Float)
     change_percent = db.Column(db.Float, nullable=True)
     market_cap = db.Column(db.Float)

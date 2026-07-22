@@ -1,5 +1,4 @@
 import os
-from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -11,12 +10,14 @@ from extensions import db, login_manager
 from auth import auth_bp
 from models import User, Stock, DiscussionPost, WatchlistItem, POST_BODY_LIMIT
 from stock_service import (
+    get_or_create_stock,
+    get_or_refresh_ai_summary,
     get_or_refresh_global_news,
     get_or_refresh_historical_data,
     get_or_refresh_news,
     get_or_refresh_stock,
 )
-from financial_data import get_stock_data, get_news, get_global_news
+from financial_data import get_news, get_global_news
 def abbreviate_number(num):
     if not num:
         return "-"
@@ -77,8 +78,13 @@ def dashboard():
         item.stock = get_or_refresh_stock(item.stock)
     stocks = [item.stock for item in current_user.watchlist_items]
     global_news = get_or_refresh_global_news()
-   
-    return render_template('dashboard.html', stocks=stocks, global_news=global_news)
+
+    show_welcome = not current_user.has_seen_welcome
+    if show_welcome:
+        current_user.has_seen_welcome = True
+        db.session.commit()
+
+    return render_template('dashboard.html', stocks=stocks, global_news=global_news, show_welcome=show_welcome)
 
 @app.route('/watchlist/add', methods=['POST'])
 @login_required
@@ -87,37 +93,15 @@ def add_to_watchlist():
     if not ticker:
         return {"error": "Ticker parameter is required"}, 400
 
-    stock = db.session.get(Stock, ticker)
-    
+    try:
+        stock = get_or_create_stock(ticker)
+    except Exception as e:
+        print(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}")
+        flash(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}", "error")
+        return redirect(url_for('dashboard'))
     if not stock:
-        try:
-            stock_data = get_stock_data(ticker)
-        except Exception as e:
-            print(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}")
-            flash(f"Error occurred while fetching stock data for ticker '{ticker}': {str(e)}", "error")
-            return redirect(url_for('dashboard'))
-        if not stock_data:
-            flash(f"Stock data for ticker '{ticker}' not found! Try a different ticker.", "error")
-            return redirect(url_for('dashboard'))
-        print(stock_data)
-        stock = Stock(
-            ticker=ticker,
-            name=stock_data['name'],
-            last_updated=datetime.now(timezone.utc),
-            current_price=stock_data.get('currentPrice'),
-            change_percent=stock_data.get('changePercent'),
-            market_cap=stock_data.get('marketCap'),
-            pe_ratio=stock_data.get('trailingPE'),
-            revenue=stock_data.get('totalRevenue'),
-            revenue_growth=stock_data.get('revenueGrowth'),
-            profit_margins=stock_data.get('profitMargins'),
-            free_cashflow=stock_data.get('freeCashflow'),
-            debt=stock_data.get('totalDebt'),
-            analyst_recommendation=stock_data.get('recommendationKey'),
-            price_target=stock_data.get('targetMeanPrice'),
-        )
-        db.session.add(stock)
-        db.session.commit()
+        flash(f"Stock data for ticker '{ticker}' not found! Try a different ticker.", "error")
+        return redirect(url_for('dashboard'))
     stock = get_or_refresh_stock(stock)
     already_watched = WatchlistItem.query.filter_by(
         user_id=current_user.id, stock_ticker=stock.ticker
@@ -192,6 +176,7 @@ def stock_details(ticker):
         stock = get_or_refresh_stock(stock)
         historical_prices = get_or_refresh_historical_data(stock)
         news_articles = get_or_refresh_news(stock)
+        ai_summary = get_or_refresh_ai_summary(stock)
     except Exception as e:
         return {"error": "Unable to retrieve stock data: " + str(e)}, 503
 
@@ -210,6 +195,7 @@ def stock_details(ticker):
         posts=posts,
         stock_news=stock_news,
         post_body_limit=POST_BODY_LIMIT,
+        ai_summary=ai_summary,
     )
 
 
