@@ -3,11 +3,13 @@ from zoneinfo import ZoneInfo
 
 from extensions import db
 from financial_data import get_global_news, get_news, get_stock_data
-from models import NewsArticle
+from gemini import gemini_eval
+from models import NewsArticle, Stock
 
 PRICE_CACHE_DURATION = timedelta(hours=1)
 HISTORY_CACHE_DURATION = timedelta(hours=24)
 NEWS_CACHE_DURATION = timedelta(hours=8)
+AI_SUMMARY_CACHE_DURATION = timedelta(days=1)
 
 
 def is_market_open(now):
@@ -23,6 +25,36 @@ def is_market_open(now):
         return False
 
     return True
+
+def get_or_create_stock(ticker):
+    ticker = ticker.upper().strip()
+    stock = db.session.get(Stock, ticker)
+    if stock:
+        return stock
+
+    stock_data = get_stock_data(ticker)
+    if not stock_data:
+        return None
+
+    stock = Stock(
+        ticker=ticker,
+        name=stock_data['name'],
+        last_updated=datetime.now(timezone.utc).replace(tzinfo=None),
+        current_price=stock_data.get('currentPrice'),
+        change_percent=stock_data.get('changePercent'),
+        market_cap=stock_data.get('marketCap'),
+        pe_ratio=stock_data.get('trailingPE'),
+        revenue=stock_data.get('totalRevenue'),
+        revenue_growth=stock_data.get('revenueGrowth'),
+        profit_margins=stock_data.get('profitMargins'),
+        free_cashflow=stock_data.get('freeCashflow'),
+        debt=stock_data.get('totalDebt'),
+        analyst_recommendation=stock_data.get('recommendationKey'),
+        price_target=stock_data.get('targetMeanPrice'),
+    )
+    db.session.add(stock)
+    db.session.commit()
+    return stock
 
 def get_or_refresh_stock(stock):
     now = datetime.now(timezone.utc)
@@ -159,6 +191,31 @@ def get_or_refresh_global_news():
 
         if cached_articles:
             return cached_articles
+
+        raise
+
+def get_or_refresh_ai_summary(stock):
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    if (
+        stock.ai_summary_updated is not None
+        and stock.ai_summary_updated + AI_SUMMARY_CACHE_DURATION > now
+    ):
+        return stock.ai_summary
+
+    cached_summary = stock.ai_summary
+
+    try:
+        stock.ai_summary = gemini_eval(stock)
+        stock.ai_summary_updated = now
+        db.session.commit()
+        return stock.ai_summary
+
+    except Exception:
+        db.session.rollback()
+
+        if cached_summary is not None:
+            return cached_summary
 
         raise
 
