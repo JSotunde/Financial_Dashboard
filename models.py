@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timezone
 
 from flask_login import UserMixin
@@ -7,6 +8,14 @@ from extensions import db
 
 POST_BODY_LIMIT = 500
 
+ANIMAL_NAMES = [
+    "Panda", "Otter", "Falcon", "Koala", "Lynx", "Heron", "Badger", "Ibex",
+    "Raven", "Marlin", "Gecko", "Puffin", "Wombat", "Mongoose", "Bison",
+    "Tapir", "Ocelot", "Narwhal", "Meerkat", "Kestrel", "Caracal", "Serval",
+    "Toucan", "Peccary", "Antelope", "Cormorant", "Dingo", "Jackal",
+    "Pangolin", "Quokka",
+]
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +24,12 @@ class User(UserMixin, db.Model):
     has_seen_welcome = db.Column(db.Boolean, nullable=False, default=False)
     discussion_posts = db.relationship('DiscussionPost', back_populates='author', lazy=True, cascade="all, delete-orphan")
     watchlist_items = db.relationship('WatchlistItem', back_populates='user', lazy=True, cascade="all, delete-orphan")
+
+    @property
+    def anonymous_name(self):
+        digest = hashlib.md5(str(self.id).encode()).hexdigest()
+        index = int(digest, 16) % len(ANIMAL_NAMES)
+        return f"Anonymous {ANIMAL_NAMES[index]}"
 
 
 class Stock(db.Model):
