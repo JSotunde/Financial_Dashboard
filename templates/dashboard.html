@@ -30,11 +30,14 @@
                         <span class="metric-help" tabindex="0" data-tooltip="Welcome, we've added a couple stocks for you to get started. Click any ticker to see more info!">?</span>
                         {% endif %}
                     </h2>
+                    <button type="button" class="btn btn-ai" id="ai_suggestion_btn">AI Suggestion</button>
                     <form method="post" action="/watchlist/add" class="inline-form">
                         <input name="ticker" placeholder="Add ticker" aria-label="Ticker" maxlength="10">
                         <button class="btn" type="submit">Add</button>
                     </form>
                 </div>
+
+                <div class="ai-suggestion-result" id="ai_suggestion_result" hidden></div>
 
                 <div class="table-wrap">
                     <table class="table">
@@ -121,5 +124,30 @@
         {% endif %}
         {% endwith %}
     </main>
+
+    <script>
+        (function () {
+            const btn = document.getElementById('ai_suggestion_btn');
+            const result = document.getElementById('ai_suggestion_result');
+
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                result.hidden = false;
+                result.textContent = 'Thinking...';
+
+                fetch('/ai_suggestion', { method: 'POST' })
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) {
+                        result.textContent = data.suggestion || data.error || 'No suggestion available.';
+                    })
+                    .catch(function () {
+                        result.textContent = 'Something went wrong fetching a suggestion.';
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                    });
+            });
+        })();
+    </script>
 </body>
 </html>

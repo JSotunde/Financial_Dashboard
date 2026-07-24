@@ -185,6 +185,32 @@ textarea {
     margin-bottom: 12px;
 }
 
+.btn-ai {
+    border-color: #a9d7f5;
+    background: #cfe8fb;
+    color: #14425e;
+}
+
+.btn-ai:hover {
+    background: #bcdff8;
+    border-color: #8fc9f0;
+}
+
+.btn-ai:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.ai-suggestion-result {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    font-size: 14px;
+    white-space: pre-wrap;
+}
+
 .card-head h2 {
     margin: 0;
     font-size: 12px;
