@@ -18,6 +18,7 @@ from stock_service import (
     get_or_refresh_stock,
 )
 from financial_data import get_news, get_global_news
+from gemini import gemini_suggestion
 def abbreviate_number(num):
     if not num:
         return "-"
@@ -111,6 +112,14 @@ def add_to_watchlist():
         db.session.commit()
 
     return redirect(url_for('dashboard'))
+
+
+@app.post('/ai_suggestion')
+@login_required
+def ai_suggestion():
+    stocks = [item.stock for item in current_user.watchlist_items]
+    suggestion = gemini_suggestion(stocks)
+    return {"suggestion": suggestion}
 
 
 @app.route('/watchlist/remove/<ticker>', methods=['POST'])
